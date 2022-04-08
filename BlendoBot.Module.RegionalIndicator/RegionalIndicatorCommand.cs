@@ -1,9 +1,9 @@
 ﻿using BlendoBot.Core.Command;
 using BlendoBot.Core.Entities;
 using BlendoBot.Core.Module;
+using BlendoBot.Core.Utility;
 using DSharpPlus.EventArgs;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BlendoBot.Module.RegionalIndicator;
@@ -20,7 +20,8 @@ internal class RegionalIndicatorCommand : ICommand {
 	public string DesiredTerm => "ri";
 	public string Description => "Converts a message into lovely regional indicator text";
 	public Dictionary<string, string> Usage => new() {
-		{ "[message]", "Regionally indicates this message." }
+		{ "[message]", "Regionally indicates this message." },
+		{ "Note", $"The regional indicator does not like uses of the {"<".Code()} and {">".Code()} characters. Also make sure your message is short enough to be encoded." }
 	};
 
 	public async Task OnMessage(MessageCreateEventArgs e, string[] tokenizedInput) {
@@ -33,16 +34,7 @@ internal class RegionalIndicatorCommand : ICommand {
 			});
 			return;
 		}
-		string message = string.Join(' ', tokenizedInput);
-		StringBuilder newString = new();
-		foreach (char c in message) {
-			if (RegionalIndicator.CharacterMappings.ContainsKey(c)) {
-				newString.Append(RegionalIndicator.CharacterMappings[c]);
-				newString.Append(' '); // Stops platforms from actually rendering flags.
-			} else {
-				newString.Append(c);
-			}
-		}
+		string newString = RegionalIndicator.ConvertString(string.Join(' ', tokenizedInput));
 		if (newString.Length <= 2000) {
 			await module.DiscordInteractor.Send(this, new SendEventArgs {
 				Message = newString.ToString(),

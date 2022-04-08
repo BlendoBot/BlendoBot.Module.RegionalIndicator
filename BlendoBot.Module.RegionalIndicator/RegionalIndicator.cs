@@ -1,6 +1,7 @@
 ﻿using BlendoBot.Core.Module;
 using BlendoBot.Core.Services;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BlendoBot.Module.RegionalIndicator;
@@ -26,7 +27,7 @@ public class RegionalIndicator : IModule {
 		return Task.FromResult(ModuleManager.RegisterCommand(this, RegionalIndicatorCommand, out _));
 	}
 
-	internal static readonly Dictionary<char, string> CharacterMappings = new() {
+	private static readonly Dictionary<char, string> CharacterMappings = new() {
 		{ 'a', ":regional_indicator_a:" },
 		{ 'b', ":regional_indicator_b:" },
 		{ 'c', ":regional_indicator_c:" },
@@ -71,4 +72,24 @@ public class RegionalIndicator : IModule {
 		{ '+', ":heavy_plus_sign:" },
 		{ '-', ":heavy_minus_sign:" }
 	};
+
+	public static string ConvertString(string s) {
+		StringBuilder newString = new();
+		bool inEmote = false;
+		foreach (char c in s.ToLower()) {
+			if (CharacterMappings.ContainsKey(c) && !inEmote) {
+				newString.Append(CharacterMappings[c]);
+				newString.Append(' '); // Stops platforms from actually rendering flags.
+			} else if (c == '<') {
+				inEmote = true;
+				newString.Append(c);
+			} else if (c == '>') {
+				inEmote = false;
+				newString.Append(c);
+			} else {
+				newString.Append(c);
+			}
+		}
+		return newString.ToString().Trim();
+	} 
 }
